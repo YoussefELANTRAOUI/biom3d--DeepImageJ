@@ -1,97 +1,116 @@
-<img width="250" height="250" alt="logo_biom3d_crop" src="https://github.com/user-attachments/assets/0a809224-f931-471d-9cd6-ec36f2e20a67" />
+<img width="300" height="150" alt="deepimageJ" src="https://github.com/user-attachments/assets/377ba1fd-96ac-4e17-b940-b6f7a9be68b2" />
+<img width="200" height="150" alt="logo_biom3d_crop" src="https://github.com/user-attachments/assets/30f2baf2-5632-4566-842d-54cff92f3896" />
 
-<img width="250" height="250" alt="deepimageJ" src="https://github.com/user-attachments/assets/5aa23e78-4876-4269-9b1e-ca3eec586858" />
 
 
-# 🧬 Convertisseur Biom3d vers DeepImageJ (BioImage.IO)
+
+
+# 🧬 Biom3d to DeepImageJ (BioImage.IO) Converter
+
 ## 📝 Description
-Ce script permet de convertir un modèle d'intelligence artificielle entraîné avec Biom3d (format PyTorch .pth) en une archive standardisée BioImage.IO (.zip).Cette archive peut ensuite être importée directement dans le logiciel Fiji / ImageJ (via le plugin DeepImageJ) pour segmenter des images sans aucune ligne de code.
-## ⚠️ CONTRAINTE TECHNIQUE MAJEURE (À lire absolument)
-Pour que l'exportation et l'utilisation dans Fiji fonctionnent, l'image de test fournie au script doit respecter une règle géométrique stricte liée au moteur de tuilage (tiling) de DeepImageJ :Règle : La taille de la tuile d'entraînement (PATCH_SIZE) ne peut pas excéder 3 fois la taille de l'image sur un axe donné.En clair : Si votre modèle a été entraîné avec un PATCH_SIZE de Z=56, l'image de test (Raw Image) que vous donnez au script doit avoir une profondeur Z d'au moins 19 coupes (car $19 \times 3 = 57 > 56$). Si vous fournissez une image trop petite, le script ou Fiji plantera.
-# 🛠️ 1. Prérequis et Installation
-Que vous utilisiez Google Colab, Jupyter Notebook ou un script Python classique, assurez-vous d'avoir installé les librairies suivantes :
+This script converts an artificial intelligence model trained with Biom3d (PyTorch `.pth` format) into a standardized BioImage.IO archive (`.zip`). This archive can then be imported directly into the Fiji / ImageJ software (via the DeepImageJ plugin) to segment images without writing a single line of code.
+
+## ⚠️ MAJOR TECHNICAL CONSTRAINT (Must read)
+For the export and use in Fiji to work properly, the test image provided to the script must comply with a strict geometric rule tied to DeepImageJ's tiling engine:
+
+**Rule:** The training tile size (`PATCH_SIZE`) cannot exceed 3 times the image size along any given axis.
+
+In other words: If your model was trained with a `PATCH_SIZE` of Z=56, the test image (Raw Image) you provide to the script must have a Z depth of at least 19 slices (since $19 \times 3 = 57 > 56$). If you provide an image that is too small, the script or Fiji will crash.
+
+# 🛠️ 1. Prerequisites and Installation
+Whether you are using Google Colab, Jupyter Notebook, or a standard Python script, make sure you have installed the following libraries:
+
 ## 🔨 Installation
 
-Pour installer les dépendances nécessaires, exécutez la commande suivante :
+To install the required dependencies, run the following command:
 
 ```bash
 pip install torch numpy tifffile pyyaml biom3d bioimageio.core bioimageio.spec
 ```
-## 📂 2. Préparation des données
-Avant de lancer le script, vous devez préparer deux éléments dans un dossier accessible :
 
-Le dossier du modèle Biom3d : Ce dossier doit contenir vos résultats d'entraînement (notamment le sous-dossier /model avec le fichier _best.pth et le sous-dossier /log avec le fichier config.yaml).
+## 📂 2. Data Preparation
+Before running the script, you must prepare two items in an accessible folder:
 
-Une image brute de test (.tif) : Une image représentative (Raw) qui respecte la règle de taille mentionnée ci-dessus.
+The Biom3d model folder: This folder must contain your training outputs (in particular the `/model` subfolder with the `_best.pth` file, and the `/log` subfolder with the `config.yaml` file).
 
-## 🚀 3. Comment utiliser le script ?
-Étape A : Modifier les chemins d'accès
-Ouvrez le script (dans Colab, Jupyter ou votre IDE) et repérez la section de configuration au tout début du code. Vous devez modifier uniquement ces deux chemins :
-``` Python
-# --- CONFIGURATION UTILISATEUR ---
+A raw test image (`.tif`): A representative (Raw) image that complies with the size rule mentioned above.
 
-# 1. Chemin vers le dossier du modèle entraîné par Biom3d
-chemin_vers_dossier = "/chemin/vers/mon/modele/20260101-nom_du_modele"
+## 🚀 3. How to use the script?
+### Step A: Edit the file paths
+Open the script (in Colab, Jupyter, or your IDE) and locate the configuration section at the very beginning of the code. You only need to modify these two paths:
 
-# 2. Chemin vers l'image brute de test (.tif)
-chemin_image = "/chemin/vers/mon/image_test.tif"
+```python
+# --- USER CONFIGURATION ---
+
+# 1. Path to the folder of the model trained with Biom3d
+chemin_vers_dossier = "/path/to/my/model/20260101-model_name"
+
+# 2. Path to the raw test image (.tif)
+chemin_image = "/path/to/my/test_image.tif"
 ```
-PRECISION: si l'image n'est pas en format .tif, ouvres l'image dans Fiji et sauvegarder en format .tif 
+
+NOTE: if the image is not in `.tif` format, open the image in Fiji and save it in `.tif` format:
 ```bash
 File -> Save As -> Tiff
 ```
-Étape B : Exécuter le script
-Lancez l'exécution de la cellule .
 
-Le script effectuera automatiquement les opérations suivantes :
+### Step B: Run the script
+Run the cell to execute it.
 
-Reconstruction de l'architecture du modèle.
+The script will automatically perform the following operations:
 
-Centrage intelligent et "Padding" de votre image de test.
+Reconstruction of the model architecture.
 
-Conversion du modèle en format optimisé (TorchScript).
+Smart centering and "Padding" of your test image.
 
-Création d'une prédiction de validation (test_output).
+Conversion of the model into an optimized format (TorchScript).
 
-Empaquetage complet selon la norme BioImage.IO.
-## 📦 4. Résultat attendu
-Si le script s'exécute avec succès, vous verrez le message suivant dans la console :
-🎉 Package sauvegardé : Nom_Du_Modele_bioimageio.zip
+Generation of a validation prediction (`test_output`).
 
-Félicitations ! Vous avez maintenant un fichier .zip prêt à l'emploi.
-Il vous suffit d'ouvrir Fiji, d'aller dans Plugins > DeepImageJ > Install Model, de sélectionner ce fichier .zip, et vos biologistes peuvent commencer à segmenter leurs données !
-# Pour bien visualiser le resultat 
+Full packaging according to the BioImage.IO standard.
+
+## 📦 4. Expected Result
+If the script runs successfully, you will see the following message in the console:
+
+🎉 Package saved: `Model_Name_bioimageio.zip`
+
+Congratulations! You now have a `.zip` file ready to use.
+Simply open Fiji, go to **Plugins > DeepImageJ > Install Model**, select this `.zip` file, and your biologists can start segmenting their data!
+
+# For a better visualization of the result
 ```bash
-Image->Adjust->Brightness/Contrast
+Image -> Adjust -> Brightness/Contrast
 ```
-## ❓ Dépannage (FAQ)
-Erreur NegativeArraySizeException dans Fiji : Le modèle produit une sortie trop lourde pour la mémoire de Java. Ce problème survient souvent sur des modèles avec beaucoup de classes (ex: 13 classes). Il faut réduire le PATCH_SIZE lors de l'entraînement.
 
-Le modèle n'affiche qu'une seule couleur dans Fiji : C'est normal si votre structure est très petite. Le modèle détecte bien la cible, mais l'affichage par défaut de Fiji l'écrase. Faites Image > Adjust > Threshold pour la révéler.
-## 🧩 Cas particulier : Images Multi-Canaux (Ex: Modèle Cerveau / IRM)
-Attention : Lorsque vous ouvrez des images TIFF complexes (comportant plusieurs canaux de fluorescence ou plusieurs modalités IRM), Fiji peut mal interpréter les dimensions du fichier. Il confond souvent les Canaux (C) avec le Temps (Frames/T) ou la Profondeur (Slices/Z).
+## ❓ Troubleshooting (FAQ)
+**`NegativeArraySizeException` error in Fiji:** The model produces an output that is too heavy for Java's memory. This issue often occurs with models that have many classes (e.g. 13 classes). You must reduce the `PATCH_SIZE` during training.
 
-Si votre modèle attend 4 canaux en entrée, mais que Fiji a ouvert l'image comme une vidéo (Frames = 4, Channels = 1), le plugin DeepImageJ affichera une erreur de dimensionnement.
+**The model only displays a single color in Fiji:** This is normal if your structure is very small. The model does detect the target correctly, but Fiji's default display overrides it. Go to **Image > Adjust > Threshold** to reveal it.
 
-Solution : Réorganiser l'Hyperstack avant de lancer le modèle
+## 🧩 Special case: Multi-Channel Images (e.g. Brain / MRI model)
+Warning: When you open complex TIFF images (containing several fluorescence channels or several MRI modalities), Fiji may misinterpret the file dimensions. It often confuses Channels (C) with Time (Frames/T) or Depth (Slices/Z).
 
-Ouvrez votre image .tif dans Fiji.
+If your model expects 4 input channels, but Fiji opened the image as a video (Frames = 4, Channels = 1), the DeepImageJ plugin will display a dimensioning error.
 
-Dans le menu principal, allez dans : Image > Hyperstacks > Stack to Hyperstack...
+### Solution: Reorganize the Hyperstack before running the model
 
-Une fenêtre s'ouvre. Configurez-la exactement comme suit pour rétablir la bonne géométrie :
+Open your `.tif` image in Fiji.
 
-Order : Choisissez l'ordre correct (par exemple xyczt ou TCZYX selon votre fichier d'origine).
+From the main menu, go to: **Image > Hyperstacks > Stack to Hyperstack...**
 
-Channels (c) : Entrez le vrai nombre de canaux (ex: 4 au lieu de 1).
+A window opens. Configure it exactly as follows to restore the correct geometry:
 
-Slices (z) : Laissez le nombre de coupes de profondeur (ex: 155).
+**Order:** Choose the correct order (for example `xyczt` or `TCZYX` depending on your source file).
 
-Frames (t) : Forcez à 1 (au lieu de 4, car ce n'est pas une vidéo).
+**Channels (c):** Enter the actual number of channels (e.g. 4 instead of 1).
 
-Cliquez sur OK.
+**Slices (z):** Keep the number of depth slices (e.g. 155).
 
-Vérification : En bas de la fenêtre de votre image dans Fiji, vous devriez maintenant voir une barre de défilement pour les Canaux (C) et une barre pour la Profondeur (Z) en dessous, confirmant que l'image est prête pour DeepImageJ.
+**Frames (t):** Force to 1 (instead of 4, since it is not a video).
+
+Click OK.
+
+**Verification:** At the bottom of your image window in Fiji, you should now see a scroll bar for Channels (C) and another one for Depth (Z) below it, confirming that the image is ready for DeepImageJ.
 
 ```python
 import torch
